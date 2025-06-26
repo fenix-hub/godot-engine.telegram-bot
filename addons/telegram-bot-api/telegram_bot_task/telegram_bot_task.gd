@@ -1,7 +1,8 @@
-class_name TelegramBotTask
-extends HTTPRequest
+class_name TelegramBotTask extends HTTPRequest
 
-signal task_completed(result)
+signal completed(result: Variant)
+signal test
+
 
 enum Methods {
     GET_UPDATES,
@@ -11,13 +12,13 @@ enum Methods {
 var _base_url : String
 var _endpoint : String
 var _http_method : int
-var _header : PoolStringArray
+var _header : PackedStringArray
 var _payload : Dictionary
 
 var method : int
 
 func _ready() -> void:
-    connect("request_completed", self, "_on_task_completed")
+    request_completed.connect(_on_task_completed)
 
 func match_endpoint(_method : int) -> void:
     method = _method
@@ -32,18 +33,17 @@ func match_endpoint(_method : int) -> void:
             _http_method = HTTPClient.METHOD_GET
             _endpoint = ""
 
-func set_task(_method : int, payload : Dictionary = {}, header : PoolStringArray = []) -> void:
+func set_task(_method : int, payload : Dictionary = {}, header : PackedStringArray = []) -> void:
     _base_url = get_parent()._base_url
     match_endpoint(_method)
     _header = header
     _payload = payload
 
 func process_task() ->  void:
-    request(_base_url + _endpoint, _header, true, _http_method, to_json(_payload))
+    request(_base_url + _endpoint, _header, _http_method, JSON.stringify(_payload))
 
-func _on_task_completed(result : int, response_code : int, headers : PoolStringArray, body : PoolByteArray):
+func _on_task_completed(result : int, response_code : int, headers : PackedStringArray, body : PackedByteArray):
     if result == 0:
         if response_code == 200:
-            var result_body = parse_json(body.get_string_from_utf8()).result
-            emit_signal("task_completed", result_body)
+            completed.emit(JSON.parse_string(body.get_string_from_utf8()).result)
             queue_free()
