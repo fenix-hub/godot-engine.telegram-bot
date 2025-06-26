@@ -1,5 +1,4 @@
-class_name TelegramMessage
-extends Reference
+class_name TelegramMessage extends RefCounted
 
 enum ParseModes {
     NONE,
