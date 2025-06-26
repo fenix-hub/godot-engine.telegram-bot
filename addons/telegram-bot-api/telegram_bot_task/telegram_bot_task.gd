@@ -45,6 +45,5 @@ func process_task() ->  void:
 func _on_task_completed(result : int, response_code : int, headers : PackedStringArray, body : PackedByteArray):
     if result == 0:
         if response_code == 200:
-            var result_json = JSON.parse_string(body.get_string_from_utf8())
-            completed.emit(result_json.result)
+            completed.emit(JSON.parse_string(body.get_string_from_utf8()).result)
             queue_free()
